@@ -122,6 +122,7 @@ build_steps = build_cfg.default_build_dataflow_steps + [custom_step_gen_tb_and_i
 
 
 cfg = build.DataflowBuildConfig(
+    verbose=True,
     steps=build_steps,
     board=platform_name,
     output_dir="output_%s_%s" % (model_name, platform_name),
@@ -129,17 +130,18 @@ cfg = build.DataflowBuildConfig(
     folding_config_file="folding_config.json",
     fpga_part="xczu3eg-sbva484-1-e",
     shell_flow_type=build_cfg.ShellFlowType.VIVADO_ZYNQ,
-    stitched_ip_gen_dcp=False,
+    auto_fifo_depths=False,
+    stitched_ip_gen_dcp=True,
     generate_outputs=[
         build_cfg.DataflowOutputType.STITCHED_IP,
     ],
     verify_steps=[
-        build_cfg.VerificationStepType.TIDY_UP_PYTHON,
-        build_cfg.VerificationStepType.STREAMLINED_PYTHON,
-        build_cfg.VerificationStepType.FOLDED_HLS_CPPSIM,
-        build_cfg.VerificationStepType.STITCHED_IP_RTLSIM,
+        # build_cfg.VerificationStepType.TIDY_UP_PYTHON,
+        # build_cfg.VerificationStepType.STREAMLINED_PYTHON,
+        # build_cfg.VerificationStepType.FOLDED_HLS_CPPSIM,
+        # build_cfg.VerificationStepType.STITCHED_IP_RTLSIM,
     ],
     save_intermediate_models=True,
 )
-model_file = "model.onnx"
+model_file = "qconv.onnx"
 build.build_dataflow_cfg(model_file, cfg)

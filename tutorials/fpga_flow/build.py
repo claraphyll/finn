@@ -32,8 +32,9 @@
 # ./run-docker.sh build_custom /path/to/folder
 
 
-import numpy as np
 import os
+
+import numpy as np
 from qonnx.custom_op.registry import getCustomOp
 
 import finn.builder.build_dataflow as build

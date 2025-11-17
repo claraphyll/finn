@@ -33,6 +33,9 @@ from finn.custom_op.fpgadataflow.concat import StreamingConcat
 from finn.custom_op.fpgadataflow.convolutioninputgenerator import (
     ConvolutionInputGenerator,
 )
+from finn.custom_op.fpgadataflow.deconvolutioninputgenerator import (
+    DeconvolutionInputGenerator,
+)
 from finn.custom_op.fpgadataflow.downsampler import DownSampler
 from finn.custom_op.fpgadataflow.duplicatestreams import DuplicateStreams
 from finn.custom_op.fpgadataflow.fmpadding import FMPadding
@@ -67,6 +70,7 @@ custom_op["StreamingDataflowPartition"] = StreamingDataflowPartition
 
 custom_op["AddStreams"] = AddStreams
 custom_op["ChannelwiseOp"] = ChannelwiseOp
+custom_op["DeconvolutionInputGenerator"] = DeconvolutionInputGenerator
 custom_op["ConvolutionInputGenerator"] = ConvolutionInputGenerator
 custom_op["DownSampler"] = DownSampler
 custom_op["DuplicateStreams"] = DuplicateStreams

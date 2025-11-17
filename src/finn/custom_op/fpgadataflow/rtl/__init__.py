@@ -43,7 +43,19 @@ custom_op = dict()
 # make sure new HLSCustomOp subclasses are imported here so that they get
 # registered and plug in correctly into the infrastructure
 custom_op["ConvolutionInputGenerator_rtl"] = ConvolutionInputGenerator_rtl
+<<<<<<< HEAD
 custom_op["DeconvolutionInputGenerator_rtl"] = DeconvolutionInputGenerator_rtl
+=======
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+custom_op["DeconvolutionInputGenerator_rtl"] = DeconvolutionInputGenerator_rtl
+=======
+custom_op["DeconvolutionInputGenerator_rtl"] = ConvolutionInputGenerator_rtl
+>>>>>>> Stashed changes
+=======
+custom_op["DeconvolutionInputGenerator_rtl"] = ConvolutionInputGenerator_rtl
+>>>>>>> Stashed changes
+>>>>>>> b0a03dd5 (add deconvinputgen)
 custom_op["FMPadding_rtl"] = FMPadding_rtl
 custom_op["StreamingDataWidthConverter_rtl"] = StreamingDataWidthConverter_rtl
 custom_op["StreamingFIFO_rtl"] = StreamingFIFO_rtl

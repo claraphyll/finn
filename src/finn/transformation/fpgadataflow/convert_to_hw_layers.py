@@ -27,9 +27,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+import warnings
+
 import numpy as np
 import qonnx.core.data_layout as DataLayout
-import warnings
 from onnx import NodeProto, TensorProto, helper
 from qonnx.core.datatype import DataType
 
@@ -45,6 +46,32 @@ from qonnx.util.onnx import nchw_to_nhwc
 
 # Module containing specializations of elementwise binary operations
 import finn.custom_op.fpgadataflow.elementwise_binary as elementwise_binary
+
+
+class InferDeconvGen(Transformation):
+    def __init__(self):
+        super().__init__()
+
+    def apply(self, model):
+        graph = model.graph
+        node_ind = 0
+        graph_modified = False
+        for n in graph.node:
+            node_ind += 1
+            if n.op_type != "ConvTranspose":
+                continue
+
+            node = helper.make_node(
+                "DeconvolutionInputGenerator",
+                [n.input[0], n.input[1], n.input[2]],
+                [n.output[0]],
+                name="DeconvolutionInputGenerator_" + n.name,
+            )
+            graph.node.insert(node_ind, node)
+            graph_modified = True
+            graph.node.remove(n)
+
+        return (model, graph_modified)
 
 
 class InferConvInpGen(Transformation):
@@ -66,7 +93,9 @@ class InferConvInpGen(Transformation):
                 i2c_out_shape = model.get_tensor_shape(i2c_output)
                 dt = model.get_tensor_datatype(i2c_input)
                 if not dt.is_integer():
-                    warnings.warn("%s : Input is not int. Can't infer ConvInpGen." % n.name)
+                    warnings.warn(
+                        "%s : Input is not int. Can't infer ConvInpGen." % n.name
+                    )
                     continue
                 i2c_inst = getCustomOp(n)
                 stride_h, stride_w = i2c_inst.get_nodeattr("stride")
@@ -91,7 +120,8 @@ class InferConvInpGen(Transformation):
 
                 if pad_h > 0 or pad_w > 0:
                     assert pad_val == 0, (
-                        "%s : FMPadding_Batch doesn't currently support pad_val!= 0" % n.name
+                        "%s : FMPadding_Batch doesn't currently support pad_val!= 0"
+                        % n.name
                     )
 
                     odim_padding_h = ifm_dim_h + pad_h
@@ -211,11 +241,13 @@ class InferThresholdingLayer(Transformation):
                 odt = model.get_tensor_datatype(thl_output)
                 scale = getCustomOp(node).get_nodeattr("out_scale")
                 assert scale == 1.0, (
-                    node.name + ": MultiThreshold out_scale must be 1 for HLS conversion."
+                    node.name
+                    + ": MultiThreshold out_scale must be 1 for HLS conversion."
                 )
                 actval = getCustomOp(node).get_nodeattr("out_bias")
                 assert int(actval) == actval, (
-                    node.name + ": MultiThreshold out_bias must be integer for HLS conversion."
+                    node.name
+                    + ": MultiThreshold out_bias must be integer for HLS conversion."
                 )
                 actval = int(actval)
 
@@ -272,13 +304,15 @@ class InferUpsample(Transformation):
                 dt = model.get_tensor_datatype(n.input[0])
                 if not dt.is_integer():
                     warnings.warn(
-                        "%s: Input not int. Can't infer UpsampleNearestNeighbour." % n.name
+                        "%s: Input not int. Can't infer UpsampleNearestNeighbour."
+                        % n.name
                     )
                     continue
 
                 if model.get_tensor_layout(n.input[0]) != DataLayout.NHWC:
                     warnings.warn(
-                        "%s: Input not NHWC. Can't infer UpsampleNearestNeighbour." % n.name
+                        "%s: Input not NHWC. Can't infer UpsampleNearestNeighbour."
+                        % n.name
                     )
                     continue
 
@@ -502,7 +536,9 @@ class InferDuplicateStreamsLayer(Transformation):
                     out_tensor_clones = []
                     for i in range(n_outputs):
                         clone = helper.make_tensor_value_info(
-                            model.make_new_valueinfo_name(), TensorProto.FLOAT, out_shape
+                            model.make_new_valueinfo_name(),
+                            TensorProto.FLOAT,
+                            out_shape,
                         )
                         model.graph.value_info.append(clone)
                         out_tensor_clones += [clone.name]
@@ -620,7 +656,9 @@ class InferChannelwiseLinearLayer(Transformation):
                 # check if the shape of initializer is compatible
                 ll_cinit_shape = list(ll_cinit.shape)
                 if np.prod(ll_cinit_shape) == 1:
-                    warnings.warn("Broadcasting " + str(node.op_type) + "(" + node.name + ")")
+                    warnings.warn(
+                        "Broadcasting " + str(node.op_type) + "(" + node.name + ")"
+                    )
                     ll_cinit = np.full((ch), ll_cinit.flatten()[0])
                 elif np.prod(ll_cinit_shape) != ch or ll_cinit_shape[ch_index] != ch:
                     # parameter shape not compatible with Channelwise
@@ -964,7 +1002,9 @@ class InferPool(Transformation):
                 elif node.op_type == "QuantAvgPool2d":
                     assert odt.is_integer(), """Output data type for QuantAvgPool2d
                     needs to be integer"""
-                    assert all(x == 0 for x in pad), "Padding is not supported for QuantAvgPool2d"
+                    assert all(x == 0 for x in pad), (
+                        "Padding is not supported for QuantAvgPool2d"
+                    )
                     inst = getCustomOp(node)
                     pool_fxn = "QuantAvgPool"
                     pool_size_param = inst.get_shifts()
@@ -972,7 +1012,9 @@ class InferPool(Transformation):
 
                 else:
                     raise Exception(
-                        "pad_value and pool_fxn not configured for {}".format(node.op_type)
+                        "pad_value and pool_fxn not configured for {}".format(
+                            node.op_type
+                        )
                     )
 
                 # format input tensor
@@ -1119,18 +1161,24 @@ class InferConcatLayer(Transformation):
                     )
                     continue
                 # skip conversion if any inputs are static
-                any_static = any([model.get_initializer(x) is not None for x in node.input])
+                any_static = any(
+                    [model.get_initializer(x) is not None for x in node.input]
+                )
                 if any_static:
                     continue
                 # skip conversion if inputs are not integers
-                all_integer = all([model.get_tensor_datatype(x).is_integer() for x in node.input])
+                all_integer = all(
+                    [model.get_tensor_datatype(x).is_integer() for x in node.input]
+                )
                 if not all_integer:
                     warnings.warn(
                         "Inputs with non-integer datatype detected, skipping InferConcatLayer()"
                     )
                     continue
                 # ready for conversion
-                channels_per_stream = [model.get_tensor_shape(x)[-1] for x in node.input]
+                channels_per_stream = [
+                    model.get_tensor_shape(x)[-1] for x in node.input
+                ]
                 inp_vec = list(model.get_tensor_shape(node.input[0])[:-1])
                 new_node = helper.make_node(
                     "StreamingConcat",
@@ -1141,7 +1189,9 @@ class InferConcatLayer(Transformation):
                     name="StreamingConcat_" + node.name,
                     SIMD=1,
                     ChannelsPerStream=channels_per_stream,
-                    inputDataTypes=[model.get_tensor_datatype(x).name for x in node.input],
+                    inputDataTypes=[
+                        model.get_tensor_datatype(x).name for x in node.input
+                    ],
                     numInputVectors=inp_vec,
                     inFIFODepths=[2] * len(node.input),
                     cpp_interface="hls_vector",
@@ -1171,7 +1221,9 @@ class InferSplitLayer(Transformation):
             if node.op_type == "Split":
                 split_param = node.input[1]
                 if model.get_initializer(split_param) is None:
-                    warnings.warn("Split param not constant, skipping InferSplitLayer()")
+                    warnings.warn(
+                        "Split param not constant, skipping InferSplitLayer()"
+                    )
                     continue
                 ishape = model.get_tensor_shape(node.input[0])
                 axis = get_by_name(node.attribute, "axis")
@@ -1195,10 +1247,14 @@ class InferSplitLayer(Transformation):
                     continue
                 # skip conversion if inputs are not integers
                 if not model.get_tensor_datatype(node.input[0]).is_integer():
-                    warnings.warn("Non-integer input detected, skipping InferSplitLayer()")
+                    warnings.warn(
+                        "Non-integer input detected, skipping InferSplitLayer()"
+                    )
                     continue
                 # ready for conversion
-                channels_per_stream = [model.get_tensor_shape(x)[-1] for x in node.output]
+                channels_per_stream = [
+                    model.get_tensor_shape(x)[-1] for x in node.output
+                ]
                 inp_vec = list(model.get_tensor_shape(node.input[0])[:-1])
                 # when creating the fpgadataflow node we remove the second parameter input
                 new_node = helper.make_node(
@@ -1517,13 +1573,17 @@ class InferQuantizedMatrixVectorActivation(Transformation):
                         scale = getCustomOp(consumer).get_nodeattr("out_scale")
                         actval = getCustomOp(consumer).get_nodeattr("out_bias")
                         assert int(actval) == actval, (
-                            consumer.name + ": out_bias must be integer for HLS conversion."
+                            consumer.name
+                            + ": out_bias must be integer for HLS conversion."
                         )
                         actval = int(actval)
                         odt_is_bipolar = odt == DataType["BIPOLAR"]
-                        bipolar_ok = odt_is_bipolar and (scale == 2.0) and (actval == -1)
+                        bipolar_ok = (
+                            odt_is_bipolar and (scale == 2.0) and (actval == -1)
+                        )
                         assert scale == 1.0 or bipolar_ok, (
-                            consumer.name + ": out_scale=1 or bipolar output needed for conversion."
+                            consumer.name
+                            + ": out_scale=1 or bipolar output needed for conversion."
                         )
                         assert (not odt.signed()) or (actval < 0), (
                             consumer.name + ": Signed output requres actval < 0"
@@ -1614,7 +1674,10 @@ class InferVectorVectorActivation(Transformation):
         graph_modified = False
         for n in graph.node:
             node_ind += 1
-            if n.op_type == "MatMul" and model.get_tensor_sparsity(n.input[1]) is not None:
+            if (
+                n.op_type == "MatMul"
+                and model.get_tensor_sparsity(n.input[1]) is not None
+            ):
                 sparsity = model.get_tensor_sparsity(n.input[1])
                 try:
                     k_h, k_w = sparsity["dw"]["kernel_shape"]
@@ -1673,11 +1736,13 @@ class InferVectorVectorActivation(Transformation):
                         odt = model.get_tensor_datatype(mt_output)
                         scale = getCustomOp(consumer).get_nodeattr("out_scale")
                         assert scale == 1.0, (
-                            consumer.name + ": out_scale must be equal to 1.0 for HLS conversion."
+                            consumer.name
+                            + ": out_scale must be equal to 1.0 for HLS conversion."
                         )
                         actval = getCustomOp(consumer).get_nodeattr("out_bias")
                         assert int(actval) == actval, (
-                            consumer.name + ": out_bias must be integer for HLS conversion."
+                            consumer.name
+                            + ": out_bias must be integer for HLS conversion."
                         )
                         actval = int(actval)
                         assert (not odt.signed()) or (actval < 0), (
@@ -1925,7 +1990,8 @@ class InferElementwiseBinaryOperation(Transformation):
                 # if both inputs are constant, throw an error and
                 # ask user to run FoldConstants transform first
                 assert (
-                    model.get_initializer(in0) is None or model.get_initializer(in1) is None
+                    model.get_initializer(in0) is None
+                    or model.get_initializer(in1) is None
                 ), """Both inputs are constant,
                     please run FoldConstants from qonnx.transformation.fold_constants first."""
                 result = node.output[0]

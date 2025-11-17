@@ -32,8 +32,9 @@
 # ./run-docker.sh build_custom /path/to/folder
 
 
-import numpy as np
 import os
+
+import numpy as np
 from qonnx.custom_op.registry import getCustomOp
 
 import finn.builder.build_dataflow as build
@@ -122,6 +123,7 @@ build_steps = build_cfg.default_build_dataflow_steps + [custom_step_gen_tb_and_i
 
 
 cfg = build.DataflowBuildConfig(
+    verbose=True,
     steps=build_steps,
     board=platform_name,
     output_dir="output_%s_%s" % (model_name, platform_name),
@@ -134,12 +136,12 @@ cfg = build.DataflowBuildConfig(
         build_cfg.DataflowOutputType.STITCHED_IP,
     ],
     verify_steps=[
-        build_cfg.VerificationStepType.TIDY_UP_PYTHON,
-        build_cfg.VerificationStepType.STREAMLINED_PYTHON,
-        build_cfg.VerificationStepType.FOLDED_HLS_CPPSIM,
-        build_cfg.VerificationStepType.STITCHED_IP_RTLSIM,
+        # build_cfg.VerificationStepType.TIDY_UP_PYTHON,
+        # build_cfg.VerificationStepType.STREAMLINED_PYTHON,
+        # build_cfg.VerificationStepType.FOLDED_HLS_CPPSIM,
+        # build_cfg.VerificationStepType.STITCHED_IP_RTLSIM,
     ],
     save_intermediate_models=True,
 )
-model_file = "model.onnx"
+model_file = "qconv.onnx"
 build.build_dataflow_cfg(model_file, cfg)

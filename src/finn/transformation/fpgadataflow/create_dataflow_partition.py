@@ -67,6 +67,7 @@ class CreateDataflowPartition(Transformation):
                 return -1
             else:
                 backend = get_by_name(node.attribute, "backend")
+                print(node.attribute)
                 if backend is not None and backend.s.decode("UTF-8") == "fpgadataflow":
                     assigned_partition = get_by_name(node.attribute, "partition_id")
                     if assigned_partition is not None:
@@ -94,9 +95,9 @@ class CreateDataflowPartition(Transformation):
             slr = inst.get_nodeattr("slr")
             for node in p_model.graph.node:
                 inst = getCustomOp(node)
-                assert slr == inst.get_nodeattr(
-                    "slr"
-                ), """all nodes with same partition_id must have the same slr id"""
+                assert slr == inst.get_nodeattr("slr"), (
+                    """all nodes with same partition_id must have the same slr id"""
+                )
             # check that there is only one non-null mem_port per partition
             nmemports = 0
             mem_port = ""

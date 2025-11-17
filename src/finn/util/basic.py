@@ -30,6 +30,7 @@ import os
 import subprocess
 import sys
 import tempfile
+
 from qonnx.util.basic import roundup_to_integer_multiple
 
 # test boards used for bnn pynq tests
@@ -298,7 +299,14 @@ def memutil(req_mem_spec, primitive_spec):
 
 def is_versal(fpgapart):
     """Returns whether board is part of the Versal family"""
-    return fpgapart[0:4] in ["xcvc", "xcve", "xcvp", "xcvm", "xqvc", "xqvm"] or fpgapart[0:5] in [
+    return fpgapart[0:4] in [
+        "xcvc",
+        "xcve",
+        "xcvp",
+        "xcvm",
+        "xqvc",
+        "xqvm",
+    ] or fpgapart[0:5] in [
         "xqrvc",
         "xcv80",
     ]

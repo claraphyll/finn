@@ -48,7 +48,11 @@ custom_op = dict()
 # registered and plug in correctly into the infrastructure
 custom_op["ConvolutionInputGenerator_rtl"] = ConvolutionInputGenerator_rtl
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 custom_op["DeconvolutionInputGenerator_rtl"] = DeconvolutionInputGenerator_rtl
+=======
+custom_op["DeconvolutionInputGenerator_rtl"] = ConvolutionInputGenerator_rtl
+>>>>>>> Stashed changes
 =======
 custom_op["DeconvolutionInputGenerator_rtl"] = ConvolutionInputGenerator_rtl
 >>>>>>> Stashed changes

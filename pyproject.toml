@@ -1,0 +1,50 @@
+[project]
+name = "finn"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Clara Rostock", email = "public@complexvector.space" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "bitstring==3.1.7",
+    "brevitas>=0.12.1",
+    "clize==5.0.1",
+    "dataclasses-json==0.5.7",
+    "gspread==3.6.0",
+    "importlib-resources==6.1.0",
+    "ipython==8.12.2",
+    "numpy>=1.24.1",
+    "onnx==1.17.0",
+    "onnxoptimizer>=0.3.13",
+    "onnxruntime>=1.16.1",
+    "pre-commit==3.3.2",
+    "protobuf==3.20.3",
+    "psutil==5.9.4",
+    "pyscaffold==4.4",
+    "pytest>=8.4.2",
+    "pyverilator",
+    "qonnx>=0.4.0",
+    "scipy==1.10.1",
+    "setupext-janitor>=1.1.2",
+    "sigtools==4.0.1",
+    "toposort==1.7.0",
+    "torchvision>=0.24.0",
+    "vcdvcd==1.0.5",
+    "wget==3.2",
+]
+
+[project.scripts]
+finn = "finn:main"
+
+[build-system]
+requires = ["uv_build>=0.9.3,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+namespace = true
+# module-name = ["analysis", "builder", "core", "custom_op", "qnn-data", "transformation", "util"]
+
+[tool.uv.sources]
+pyverilator = { git = "https://github.com/maltanar/pyverilator" }

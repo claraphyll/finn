@@ -143,5 +143,5 @@ cfg = build.DataflowBuildConfig(
     ],
     save_intermediate_models=True,
 )
-model_file = "qconv.onnx"
+model_file = "qdeconv.onnx"
 build.build_dataflow_cfg(model_file, cfg)

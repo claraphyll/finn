@@ -458,33 +458,25 @@ class DeconvolutionInputGenerator_rtl(DeconvolutionInputGenerator, RTLBackend):
         if self.get_nodeattr("dynamic_mode"):
             template_select = "/finn-rtllib/swg/swg_template_wrapper_dynamic.v"
         else:
-            template_select = "/finn-rtllib/swg/swg_template_wrapper.v"
+            template_select = "/finn-rtllib/deconv/src/deconv_wrapper.v"
+
         with open(os.environ["FINN_ROOT"] + template_select, "r") as f:
             template_wrapper = f.read()
-        with open(
-            os.environ["FINN_ROOT"] + "/finn-rtllib/swg/swg_template_axilite.v", "r"
-        ) as f:
-            template_axilite = f.read()
-        for key in code_gen_dict:
-            # transform list into long string separated by '\n'
-            code_gen_line = "\n".join(code_gen_dict[key])
-            template = template.replace(key, code_gen_line)
-            template_wrapper = template_wrapper.replace(key, code_gen_line)
-            template_axilite = template_axilite.replace(key, code_gen_line)
-        with open(
-            os.path.join(
-                code_gen_dir, self.get_nodeattr("gen_top_module") + "_impl.sv"
-            ),
-            "w",
-        ) as f:
-            f.write(template)
-        with open(
-            os.path.join(
-                code_gen_dir, self.get_nodeattr("gen_top_module") + "_wrapper.v"
-            ),
-            "w",
-        ) as f:
-            f.write(template_wrapper)
+
+            for key in code_gen_dict:
+                # transform list into long string separated by '\n'
+                code_gen_line = "\n".join(code_gen_dict[key])
+                template = template.replace(key, code_gen_line)
+                template_wrapper = template_wrapper.replace(key, code_gen_line)
+                template_axilite = template_axilite.replace(key, code_gen_line)
+
+            with open(
+                os.path.join(
+                    code_gen_dir, self.get_nodeattr("gen_top_module") + "_wrapper.v"
+                ),
+                "w",
+            ) as f:
+                f.write(template_wrapper)
 
         src_files = [
             "/finn-rtllib/deconv/src/kernal_buffer.sv"
